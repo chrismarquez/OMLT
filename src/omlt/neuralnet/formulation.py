@@ -98,7 +98,7 @@ def build_neural_network_formulation(block, network_structure, layer_constraints
         b.z = pyo.Var(net_layer.output_indexes, initialize=0)
         if isinstance(net_layer, InputLayer):
             for index in net_layer.output_indexes:
-                input_var = block.inputs[index]
+                input_var = block.scaled_inputs_list[index]
                 z_var = b.z[index]
                 z_var.setlb(input_var.lb)
                 z_var.setub(input_var.ub)
@@ -107,6 +107,26 @@ def build_neural_network_formulation(block, network_structure, layer_constraints
             b.zhat = pyo.Var(net_layer.output_indexes, initialize=0)
 
         return b
+
+    # setup input variables constraints
+    input_layers = list(net.input_layers)
+    assert len(input_layers) == 1
+    input_layer = input_layers[0]
+
+    @block.Constraint(input_layer.output_indexes)
+    def input_assignment(b, *output_index):
+        return b.scaled_inputs_list[output_index] == b.layer[id(input_layer)].z[output_index]
+        # return b.inputs[output_index] == b.layer[id(input_layer)].z[output_index]
+
+    # setup output variables constraints
+    output_layers = list(net.output_layers)
+    assert len(output_layers) == 1
+    output_layer = output_layers[0]
+
+    @block.Constraint(output_layer.output_indexes)
+    def output_assignment(b, *output_index):
+        return b.scaled_outputs_list[output_index] == b.layer[id(output_layer)].z[output_index]
+        #return b.outputs[output_index] == b.layer[id(output_layer)].z[output_index]
 
     for layer in layers:
         if isinstance(layer, InputLayer):
@@ -119,20 +139,3 @@ def build_neural_network_formulation(block, network_structure, layer_constraints
         constraint_func(block, net, layer_block, layer)
         activation_func(block, net, layer_block, layer)
 
-    # setup input variables constraints
-    input_layers = list(net.input_layers)
-    assert len(input_layers) == 1
-    input_layer = input_layers[0]
-
-    @block.Constraint(input_layer.output_indexes)
-    def input_assignment(b, *output_index):
-        return b.inputs[output_index] == b.layer[id(input_layer)].z[output_index]
-
-    # setup output variables constraints
-    output_layers = list(net.output_layers)
-    assert len(output_layers) == 1
-    output_layer = output_layers[0]
-
-    @block.Constraint(output_layer.output_indexes)
-    def output_assignment(b, *output_index):
-        return b.outputs[output_index] == b.layer[id(output_layer)].z[output_index]
