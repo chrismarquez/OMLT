@@ -53,7 +53,7 @@ class _BaseInputOutputBlockData(_BlockData):
         self.__outputs_list = None
 
     def _setup_inputs_outputs(
-        self, *, input_indexes, output_indexes, input_vars=None, output_vars=None
+        self, *, input_indexes, output_indexes#, input_vars=None, output_vars=None
     ):
         """
         This function should be called by the derived class to setup the
@@ -92,60 +92,60 @@ class _BaseInputOutputBlockData(_BlockData):
             )
 
         #create the input variables
-        if input_vars is None:
-            self.inputs_set = pyo.Set(initialize=input_indexes)
-            self.inputs = pyo.Var(self.inputs_set, initialize=0)
-            self.__inputs_list = weakref.ref(self.inputs)
-        else:
-            if isinstance(input_vars, list):
-                #TODO: extract inputs_vars here into a pure list of var data objects
-                if len(input_indexes) != len(input_vars):
-                    raise ValueError("The number of input variables does match the number of input indices")
-                self.inputs = pyo.Reference(input_vars) #create a Pyomo `Reference` to passed-in variables. 
-                #swap out the indices in the `Reference` object's `OrderedDict` to the input_indexes
-                for (i,(k,v)) in enumerate(self.inputs._data.items()):
-                    idx = input_indexes[i]
-                    if len(idx) == 1:
-                        idx = idx[0]
-                    self.inputs._data[idx] = self.inputs._data.pop(k)
-                self.__inputs_list = weakref.ref(self.inputs)
-                #self.__inputs_list = input_vars
+        # if input_vars is None:
+        self.inputs_set = pyo.Set(initialize=input_indexes)
+        self.inputs = pyo.Var(self.inputs_set, initialize=0)
+        self.__inputs_list = weakref.ref(self.inputs)
+        # else:
+            # if isinstance(input_vars, list):
+            #     #TODO: extract inputs_vars here into a pure list of var data objects
+            #     if len(input_indexes) != len(input_vars):
+            #         raise ValueError("The number of input variables does match the number of input indices")
+            #     self.inputs = pyo.Reference(input_vars) #create a Pyomo `Reference` to passed-in variables. 
+            #     #swap out the indices in the `Reference` object's `OrderedDict` to the input_indexes
+            #     for (i,(k,v)) in enumerate(self.inputs._data.items()):
+            #         idx = input_indexes[i]
+            #         if len(idx) == 1:
+            #             idx = idx[0]
+            #         self.inputs._data[idx] = self.inputs._data.pop(k)
+            #     self.__inputs_list = weakref.ref(self.inputs)
+            #     #self.__inputs_list = input_vars
             
-            #the user must have passed in an IndexedVar
-            #TODO: We need to check that the input_vars indices are the same as __input_indexes
-            else:
-                self.__inputs_list = weakref.ref(input_vars)
-            for index in self.__input_indexes:
-                if len(index) == 1: #if the index is a tuple of one element
-                    if index[0] not in self.inputs:
-                        raise ValueError(f"Input index {index} not in IndexedVar {input_vars}")
-                elif index not in self.inputs:#input_vars:
-                    raise ValueError(f"Input index {index} not in IndexedVar {input_vars}")
+            # #the user must have passed in an IndexedVar
+            # #TODO: We need to check that the input_vars indices are the same as __input_indexes
+            # else:
+            #     self.__inputs_list = weakref.ref(input_vars)
+            # for index in self.__input_indexes:
+            #     if len(index) == 1: #if the index is a tuple of one element
+            #         if index[0] not in self.inputs:
+            #             raise ValueError(f"Input index {index} not in IndexedVar {input_vars}")
+            #     elif index not in self.inputs:#input_vars:
+            #         raise ValueError(f"Input index {index} not in IndexedVar {input_vars}")
 
-        if output_vars is None:
-            self.outputs_set = pyo.Set(initialize=output_indexes)
-            self.outputs = pyo.Var(self.outputs_set, initialize=0)
-            self.__outputs_list = weakref.ref(self.outputs)
-        else:
-            if isinstance(output_vars, list):
-                if len(output_indexes) != len(output_vars):
-                    raise ValueError("The number of output variables does match the number of output indices")
-                self.outputs = pyo.Reference(output_vars) #create a Pyomo `Reference` to passed-in variables. 
-                for (i,(k,v)) in enumerate(self.outputs._data.items()):
-                    idx = output_indexes[i]
-                    if len(idx) == 1:
-                        idx = idx[0]
-                    self.outputs._data[idx] = self.outputs._data.pop(k)
-                self.__outputs_list = weakref.ref(self.outputs)
-                #self.__outputs_list = output_vars
-            else:
-                self.__outputs_list = weakref.ref(output_vars)
-            for index in self.__output_indexes:
-                if len(index) == 1: #if the index is a tuple of one element
-                    if index[0] not in self.outputs:
-                        raise ValueError(f"Output index {index} not in IndexedVar {output_vars}")
-                elif index not in self.outputs:#output_vars:
-                    raise ValueError(f"Output index {index} not in IndexedVar {output_vars}")
+        #if output_vars is None:
+        self.outputs_set = pyo.Set(initialize=output_indexes)
+        self.outputs = pyo.Var(self.outputs_set, initialize=0)
+        self.__outputs_list = weakref.ref(self.outputs)
+        #else:
+            # if isinstance(output_vars, list):
+            #     if len(output_indexes) != len(output_vars):
+            #         raise ValueError("The number of output variables does match the number of output indices")
+            #     self.outputs = pyo.Reference(output_vars) #create a Pyomo `Reference` to passed-in variables. 
+            #     for (i,(k,v)) in enumerate(self.outputs._data.items()):
+            #         idx = output_indexes[i]
+            #         if len(idx) == 1:
+            #             idx = idx[0]
+            #         self.outputs._data[idx] = self.outputs._data.pop(k)
+            #     self.__outputs_list = weakref.ref(self.outputs)
+            #     #self.__outputs_list = output_vars
+            # else:
+            #     self.__outputs_list = weakref.ref(output_vars)
+            # for index in self.__output_indexes:
+            #     if len(index) == 1: #if the index is a tuple of one element
+            #         if index[0] not in self.outputs:
+            #             raise ValueError(f"Output index {index} not in IndexedVar {output_vars}")
+            #     elif index not in self.outputs:#output_vars:
+            #         raise ValueError(f"Output index {index} not in IndexedVar {output_vars}")
 
     def _setup_input_bounds(self, inputs_list, input_bounds=None):
         if input_bounds:
@@ -181,10 +181,12 @@ class _BaseInputOutputBlockData(_BlockData):
         if scaling_object == None:
             self.__scaled_inputs_list = weakref.ref(self.inputs_list)
             self.__scaled_outputs_list = weakref.ref(self.outputs_list)
+            self.scaled_inputs = weakref.ref(self.inputs)
+            self.scaled_outputs = weakref.ref(self.outputs)
             self._setup_input_bounds(self.inputs_list, input_bounds)
 
+        #TODO: decide how we want to handle this. this code never gets called. should we allow scaling using expressions?
         elif scaling_object and use_scaling_expressions:
-            # TODO: test here. I don't think this code can even be called.
             # use pyomo Expressions for scaled and unscaled terms, variable bounds are not directly captured
             self.__scaled_inputs_list = scaling_object.get_scaled_input_expressions(
                 self.inputs_list
@@ -265,7 +267,7 @@ class OmltBlockData(_BaseInputOutputBlockData):
         self.__scaling_object = None
 
     # TODO: input_vars needs to be a dict
-    def build_formulation(self, formulation, input_vars=None, output_vars=None):
+    def build_formulation(self, formulation):#, input_vars=None, output_vars=None):
         """
         Call this method to construct the constraints (and possibly
         intermediate variables) necessary for the particular neural network
@@ -303,9 +305,9 @@ class OmltBlockData(_BaseInputOutputBlockData):
         # maybe formulation.check_input_vars(input_vars) or something?
         super(OmltBlockData, self)._setup_inputs_outputs(
             input_indexes=list(formulation.input_indexes),
-            output_indexes=list(formulation.output_indexes),
-            input_vars=input_vars,
-            output_vars=output_vars,
+            output_indexes=list(formulation.output_indexes)
+            # input_vars=input_vars,
+            # output_vars=output_vars,
         )
 
         super(OmltBlockData, self)._setup_scaled_inputs_outputs(
