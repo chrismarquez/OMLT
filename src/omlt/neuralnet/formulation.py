@@ -44,13 +44,15 @@ class NeuralNetworkFormulation(_PyomoFormulation):
         overrides the constraints generated for the specified activation functions
     """
     def __init__(self, network_structure, layer_constraints=None, activation_constraints=None):
-        super().__init__(network_structure)
+        # super().__init__(network_structure)
+        super().__init__()
 
         if layer_constraints is None:
             layer_constraints = dict()
         if activation_constraints is None:
             activation_constraints = dict()
 
+        self.__network_definition = network_structure
         self._layer_constraints = {**_DEFAULT_LAYER_CONSTRAINTS, **layer_constraints}
         self._activation_constraints = {**_DEFAULT_ACTIVATION_CONSTRAINTS, **activation_constraints}
 
